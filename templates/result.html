@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Hasil Klasterisasi{% endblock %}
+
+{% block content %}
+<h1>Hasil Klasterisasi</h1>
+<img src="{{ cluster_path }}" class="img-fluid mb-4" alt="Cluster Plot">
+
+<h2>Tabel Per Klaster</h2>
+{% for cluster, data in cluster_data.items() %}
+    <h3>Klaster {{ cluster }}</h3>
+    <div>
+        {{ data.to_html(classes='table table-striped', index=False) | safe }}
+    </div>
+{% endfor %}
+
+<a href="/" class="btn btn-primary mt-4">Kembali</a>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Grafik Elbow{% endblock %}
+
+{% block content %}
+<h1>Grafik Elbow</h1>
+<img src="{{ elbow_path }}" class="img-fluid mb-4" alt="Elbow Plot">
+
+<p>Saran jumlah klaster optimal: <strong>{{ optimal_k }}</strong></p>
+
+<form method="POST" action="{{ url_for('clustering', filename=filename) }}">
+    <div class="mb-3">
+        <label for="k" class="form-label">Jumlah Klaster (k):</label>
+        <input type="number" name="k" value="{{ optimal_k }}" class="form-control" min="1" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Lakukan Clustering</button>
+</form>
+{% endblock %}
