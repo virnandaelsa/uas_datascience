@@ -13,6 +13,19 @@
         <label for="k" class="form-label">Jumlah Klaster (k):</label>
         <input type="number" name="k" value="{{ optimal_k }}" class="form-control" min="1" required>
     </div>
+
+    <!-- Pilih kolom untuk klastering -->
+    <div class="mb-3">
+        <label for="columns" class="form-label">Pilih Kolom untuk Klastering:</label>
+        {% for column in columns %}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="selected_columns" value="{{ column }}" 
+                {% if column in selected_columns %} checked {% endif %}>
+                <label class="form-check-label">{{ column }}</label>
+            </div>
+        {% endfor %}
+    </div>
+
     <button type="submit" class="btn btn-primary">Lakukan Clustering</button>
 </form>
 {% endblock %}

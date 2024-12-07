@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Visualisasi Data{% endblock %}
+
+{% block content %}
+<h1>Visualisasi Data</h1>
+
+<div class="row">
+    <div class="col-12">
+        <h4>Grafik Visualisasi</h4>
+        <div class="row">
+            {% for plot in plots %}
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <img src="{{ plot }}" class="card-img-top img-fluid" alt="Grafik" style="max-width: 600px; max-height: 800px;">
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <h4>Statistik Deskriptif</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Kolom</th>
+                    <th>Mean</th>
+                    <th>Median</th>
+                    <th>Std Dev</th>
+                    <th>Min</th>
+                    <th>Max</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for column in columns %}
+                    <tr>
+                        <td>{{ column }}</td>
+                        <td>{{ stats[column]['mean'] }}</td>
+                        <td>{{ stats[column]['median'] }}</td>
+                        <td>{{ stats[column]['std'] }}</td>
+                        <td>{{ stats[column]['min'] }}</td>
+                        <td>{{ stats[column]['max'] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

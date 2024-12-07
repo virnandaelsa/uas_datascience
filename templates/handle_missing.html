@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Penanganan Missing Values{% endblock %}
+
+{% block content %}
+<h1>Penanganan Missing Values</h1>
+
+<form method="POST" action="{{ url_for('handle_missing', filename=filename) }}">
+    <div class="mb-3">
+        <label for="method" class="form-label">Pilih Metode Penanganan Missing Values:</label>
+        <select class="form-select" name="method" required>
+            <option value="drop_rows">Hapus Baris dengan Missing Values</option>
+            <option value="drop_columns">Hapus Kolom dengan Missing Values</option>
+            <option value="fill_mean">Isi dengan Nilai Rata-rata</option>
+            <option value="fill_median">Isi dengan Nilai Median</option>
+            <option value="fill_mode">Isi dengan Nilai Mode</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Proses Missing Values</button>
+</form>
+
+<h3>Dataset yang Diunggah:</h3>
+{{ data|safe }}
+{% endblock %}
