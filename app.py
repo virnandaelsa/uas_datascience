@@ -9,6 +9,7 @@ import seaborn as sns
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from kneed import KneeLocator
+import chardet
 
 app = Flask(__name__)
 app.secret_key = 'your_unique_secret_key_here'  # Set secret key untuk flash messages
@@ -40,19 +41,32 @@ def upload():
             flash("Hanya file CSV yang diperbolehkan.", 'error')
             return redirect(url_for('upload'))
         
-        # Simpan file yang diupload
+        # Simpan file
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
-        
-        # Membaca dataset
+
+        # Deteksi encoding
         try:
-            data = pd.read_csv(filepath)
+            import chardet
+            with open(filepath, 'rb') as f:
+                result = chardet.detect(f.read(10000))
+                detected_encoding = result['encoding']
+
+            # Baca file dengan encoding terdeteksi
+            data = pd.read_csv(filepath, encoding=detected_encoding)
+        except UnicodeDecodeError:
+            flash("Encoding tidak didukung. Coba unggah file dengan encoding UTF-8 atau Latin1.", 'error')
+            return redirect(url_for('upload'))
         except Exception as e:
             flash(f"Terjadi kesalahan saat membaca file: {str(e)}", 'error')
             return redirect(url_for('upload'))
 
-        # Menyimpan file yang diunggah di variabel global
+        # Simpan nama file
         current_file = file.filename
+
+        # Cek missing values
+        if data.isnull().values.any():
+            return redirect(url_for('handle_missing', filename=file.filename))
 
         return render_template(
             'data_overview.html',
@@ -61,6 +75,57 @@ def upload():
         )
 
     return render_template('upload.html')
+
+@app.route('/handle_missing/<filename>', methods=['GET', 'POST'])
+def handle_missing(filename):
+    global current_file
+    if current_file is None:
+        flash("Silakan unggah dataset terlebih dahulu.", 'error')
+        return redirect(url_for('upload'))
+
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    try:
+        data = pd.read_csv(filepath)
+    except Exception as e:
+        flash(f"Terjadi kesalahan saat membaca file: {str(e)}", 'error')
+        return redirect(url_for('upload'))
+
+    if request.method == 'POST':
+        # Pilihan metode dari form
+        method = request.form.get('method', None)
+
+        if not method:
+            flash("Silakan pilih metode untuk menangani missing values.", 'error')
+            return redirect(url_for('handle_missing', filename=filename))
+
+        try:
+            if method == 'drop_rows':
+                data = data.dropna()  # Hapus baris dengan missing values
+            elif method == 'drop_columns':
+                data = data.dropna(axis=1)  # Hapus kolom dengan missing values
+            elif method == 'fill_mean':
+                data = data.fillna(data.mean(numeric_only=True))  # Isi dengan mean
+            elif method == 'fill_median':
+                data = data.fillna(data.median(numeric_only=True))  # Isi dengan median
+            elif method == 'fill_mode':
+                data = data.fillna(data.mode().iloc[0])  # Isi dengan mode
+            else:
+                flash("Metode tidak valid.", 'error')
+                return redirect(url_for('handle_missing', filename=filename))
+
+            # Simpan dataset yang telah diperbaiki
+            processed_filepath = os.path.join(app.config['UPLOAD_FOLDER'], f'processed_{filename}')
+            data.to_csv(processed_filepath, index=False)
+            flash("Missing values berhasil ditangani.", 'success')
+            return redirect(url_for('data_overview'))
+
+        except Exception as e:
+            flash(f"Terjadi kesalahan saat menangani missing values: {str(e)}", 'error')
+            return redirect(url_for('handle_missing', filename=filename))
+
+    # Jika GET, tampilkan informasi missing values
+    missing_info = data.isnull().sum()
+    return render_template('handle_missing.html', filename=filename, missing_info=missing_info.to_dict())
 
 @app.route('/data_overview')
 def data_overview():
